@@ -387,7 +387,8 @@ html_code = """
 </body>
 </html>
 """
-    components.html(html_code, height=360)
+
+components.html(html_code, height=360)
 
 st.divider()
 st.markdown("## 💬 Ask Your Question")
