@@ -1,227 +1,234 @@
 """
-Admin Dashboard Page
-System administrator dashboard for analytics, usage monitoring, and configuration
+Admin Dashboard Page (modernized)
+System administrator dashboard for analytics, monitoring, and configuration.
 """
 
 import streamlit as st
-import sys
-import os
+import sys, os
 from datetime import datetime, timedelta
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(current_dir, ".."))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+st.set_page_config(page_title="Admin Dashboard", page_icon="⚙️", layout="wide")
 
-st.set_page_config(
-    page_title="Admin Dashboard",
-    page_icon="⚙️",
-    layout="wide",
+from components.styles import apply_global_css
+apply_global_css()
+
+# ── Backend ───────────────────────────────────────────────────────────────────
+try:
+    from backend.hitl import list_pending_reviews, resolve_review
+except ImportError:
+    list_pending_reviews = None
+    resolve_review = None
+
+# ── Header ────────────────────────────────────────────────────────────────────
+st.markdown(
+    """
+<div class="csc-hero">
+  <h1>⚙️ Admin Dashboard</h1>
+  <p>System administration, platform analytics, monitoring, and configuration.</p>
+</div>
+""",
+    unsafe_allow_html=True,
 )
 
-st.markdown("# ⚙️ Admin Dashboard")
-st.markdown("System administration, analytics, and configuration")
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("Total Users",    1245, "+45")
+c2.metric("Active Cases",    892, "+78")
+c3.metric("System Uptime",  "99.8%", "-0.2%")
+c4.metric("API Latency",    "245 ms", "-15ms")
 
-st.divider()
+tab1, tab2, tab3, tab4, tab5 = st.tabs(
+    ["📊 Analytics", "👥 Users", "⚙️ Config", "📈 Usage", "🔧 Maintenance"]
+)
 
-# Key System Metrics
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.metric("Total Users", 1245, "+45")
-
-with col2:
-    st.metric("Active Cases", 892, "+78")
-
-with col3:
-    st.metric("System Uptime", "99.8%", "-0.2%")
-
-with col4:
-    st.metric("API Response Time", "245ms", "-15ms")
-
-st.divider()
-
-# Tabs for different sections
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Analytics", "👥 User Management", "⚙️ System Config", "📈 Usage", "🔧 Maintenance"])
-
+# ── Analytics ─────────────────────────────────────────────────────────────────
 with tab1:
-    st.markdown("## Platform Analytics")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("### Case Statistics")
-        st.metric("Total Cases", 3456)
-        st.metric("Resolved Cases", 2892, "83.7%")
-        st.metric("Avg Resolution Time", "2.8 days")
-        st.metric("Satisfaction Score", "4.6/5")
-    
-    with col2:
-        st.markdown("### Service Distribution")
-        services = {
-            "PM-KISAN": 1200,
-            "e-Shram": 950,
-            "Passport": 850,
-            "Ayushman Bharat": 320,
-            "DigiPay": 136
-        }
-        for service, count in services.items():
-            percentage = (count / 3456) * 100
-            st.write(f"- {service}: {count} ({percentage:.1f}%)")
+    st.markdown('<div class="section-hdr">Platform Analytics</div>', unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown('<div class="csc-card">', unsafe_allow_html=True)
+        st.metric("Total Cases",       3456)
+        st.metric("Resolved Cases",    2892, "83.7%")
+        st.metric("Avg Resolution",    "2.8 days")
+        st.metric("Satisfaction",      "4.6 / 5")
+        st.markdown('</div>', unsafe_allow_html=True)
+    with c2:
+        st.markdown('<div class="section-hdr">Service Distribution</div>', unsafe_allow_html=True)
+        services = {"PM-KISAN": 1200, "e-Shram": 950, "Passport": 850, "Ayushman Bharat": 320, "DigiPay": 136}
+        total = sum(services.values())
+        for svc, cnt in services.items():
+            pct = cnt / total
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:10px;margin:.3rem 0">'
+                f'<span style="width:130px;font-size:.84rem;font-weight:600">{svc}</span>'
+                f'<div style="flex:1;background:#e2e8f0;border-radius:99px;height:7px">'
+                f'<div style="width:{pct*100:.0f}%;background:var(--primary);height:7px;border-radius:99px"></div>'
+                f'</div><span style="font-size:.8rem;color:var(--muted)">{cnt}</span></div>',
+                unsafe_allow_html=True,
+            )
 
+# ── Users ─────────────────────────────────────────────────────────────────────
 with tab2:
-    st.markdown("## User Management")
-    
-    user_type = st.selectbox(
-        "Filter by User Type",
-        ["All Users", "Citizens", "VLE Officers", "Compliance Officers", "Admins"]
-    )
-    
-    st.divider()
-    
-    # Mock user data
-    users_data = [
-        {
-            "user_id": "USR-001",
-            "name": "Rajesh Kumar",
-            "role": "Citizen",
-            "email": "rajesh@example.com",
-            "status": "Active",
-            "joined": datetime.now() - timedelta(days=30),
-            "cases": 5
-        },
-        {
-            "user_id": "USR-002",
-            "name": "Priya Singh",
-            "role": "VLE Officer",
-            "email": "priya.csc@example.com",
-            "status": "Active",
-            "joined": datetime.now() - timedelta(days=90),
-            "cases": 24
-        },
-        {
-            "user_id": "USR-003",
-            "name": "Amit Patel",
-            "role": "Compliance Officer",
-            "email": "amit.officer@example.com",
-            "status": "Active",
-            "joined": datetime.now() - timedelta(days=180),
-            "cases": 156
-        }
-    ]
-    
-    for user in users_data:
-        col1, col2, col3 = st.columns([2, 2, 1])
-        
-        with col1:
-            st.write(f"👤 **{user['name']}** ({user['user_id']})")
-            st.write(f"Email: {user['email']}")
-        
-        with col2:
-            st.write(f"Role: {user['role']}")
-            st.write(f"Joined: {user['joined'].strftime('%Y-%m-%d')}")
-        
-        with col3:
-            st.write(f"Status: {user['status']}")
-            st.write(f"Cases: {user['cases']}")
-            
-            if st.button("🔑 Manage", key=f"manage_{user['user_id']}"):
-                st.info(f"Managing user {user['user_id']}")
+    st.markdown('<div class="section-hdr">User Management</div>', unsafe_allow_html=True)
+    st.selectbox("Filter by role", ["All Users", "Citizens", "VLE Officers", "Compliance Officers", "Admins"], key="adm_role")
 
+    users = [
+        {"id": "USR-001", "name": "Rajesh Kumar",  "role": "Citizen",             "email": "rajesh@example.com",      "status": "Active", "cases": 5},
+        {"id": "USR-002", "name": "Priya Singh",   "role": "VLE Officer",         "email": "priya.csc@example.com",   "status": "Active", "cases": 24},
+        {"id": "USR-003", "name": "Amit Patel",    "role": "Compliance Officer",  "email": "amit.officer@example.com","status": "Active", "cases": 156},
+    ]
+    role_colors = {"Citizen": "blue", "VLE Officer": "green", "Compliance Officer": "amber", "Admin": "red"}
+    for u in users:
+        rc = role_colors.get(u["role"], "blue")
+        with st.container():
+            c1, c2, c3 = st.columns([3, 3, 1])
+            c1.markdown(
+                f'<b>{u["name"]}</b> <span class="csc-badge csc-badge-{rc}">{u["role"]}</span><br>'
+                f'<small style="color:var(--muted)">{u["email"]}</small>',
+                unsafe_allow_html=True,
+            )
+            c2.markdown(
+                f'ID: {u["id"]}<br>'
+                f'<span class="csc-badge csc-badge-green">{u["status"]}</span>'
+                f' · {u["cases"]} cases',
+                unsafe_allow_html=True,
+            )
+            if c3.button("Manage", key=f"adm_mgr_{u['id']}", use_container_width=True):
+                st.info(f"Managing {u['id']}: {u['name']}")
+        st.markdown("<hr style='margin:.2rem 0;border-color:var(--border)'>", unsafe_allow_html=True)
+
+# ── Config ────────────────────────────────────────────────────────────────────
 with tab3:
-    st.markdown("## System Configuration")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("### API Configuration")
-        st.write("- **OpenAI Model:** gpt-4-turbo")
-        st.write("- **Cohere Model:** command")
-        st.write("- **Embeddings:** BGE-large")
-        st.write("- **Vector DB:** ChromaDB")
-        
-        if st.button("🔄 Update LLM Config"):
-            st.success("LLM configuration updated")
-    
-    with col2:
-        st.markdown("### Database Configuration")
-        st.write("- **PostgreSQL:** neon-prod")
-        st.write("- **Connection Pool:** 10")
-        st.write("- **Query Timeout:** 30s")
-        st.write("- **Backup:** Daily at 2 AM UTC")
-        
-        if st.button("💾 Trigger Backup"):
-            st.success("Backup initiated")
+    st.markdown('<div class="section-hdr">System Configuration</div>', unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown(
+            '<div class="csc-card">'
+            '<b>AI / LLM Stack</b><br><br>'
+            '<small>'
+            'OpenAI Model: <b>gpt-4-turbo</b><br>'
+            'Cohere Model: <b>command</b><br>'
+            'Embeddings: <b>BGE-large</b><br>'
+            'Vector DB: <b>ChromaDB</b><br>'
+            'Agent Orchestration: <b>LangGraph</b>'
+            '</small></div>',
+            unsafe_allow_html=True,
+        )
+        if st.button("🔄 Update LLM Config", key="adm_llm_upd"):
+            st.success("LLM configuration updated.")
+    with c2:
+        st.markdown(
+            '<div class="csc-card">'
+            '<b>Database</b><br><br>'
+            '<small>'
+            'PostgreSQL: <b>neon-prod</b><br>'
+            'Connection Pool: <b>10</b><br>'
+            'Query Timeout: <b>30s</b><br>'
+            'Backup: <b>Daily at 2 AM UTC</b>'
+            '</small></div>',
+            unsafe_allow_html=True,
+        )
+        if st.button("💾 Trigger Backup", key="adm_bkp"):
+            st.success("Database backup initiated.")
 
+    st.markdown('<div class="section-hdr">Monitoring Services</div>', unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    c1.markdown(
+        '<div class="csc-card">'
+        'Prometheus <span class="csc-badge csc-badge-green">Running</span><br>'
+        '<small style="color:var(--muted)">localhost:9090</small>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+    c2.markdown(
+        '<div class="csc-card">'
+        'Grafana <span class="csc-badge csc-badge-green">Running</span><br>'
+        '<small style="color:var(--muted)">localhost:3000</small>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+# ── Usage ─────────────────────────────────────────────────────────────────────
 with tab4:
-    st.markdown("## Usage Analytics")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("### Daily Active Users")
-        st.metric("Today", 342, "+28")
-        st.metric("This Week Avg", 315, "+12")
-        st.metric("This Month Avg", 278, "+45")
-    
-    with col2:
-        st.markdown("### API Usage")
-        st.metric("Queries Today", 12450, "+2300")
-        st.metric("Avg Latency", "245ms")
-        st.metric("Error Rate", "0.02%", "-0.01%")
-    
-    st.divider()
-    
-    st.markdown("### Most Used Features")
-    features = {
-        "Service Discovery": 45,
-        "Eligibility Check": 32,
-        "Document Verification": 28,
-        "Grievance Filing": 18,
-        "Knowledge Search": 15
-    }
-    for feature, usage_pct in features.items():
-        st.write(f"- {feature}: {usage_pct}%")
+    st.markdown('<div class="section-hdr">Usage Analytics</div>', unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    with c1:
+        st.metric("Today DAU",          342, "+28")
+        st.metric("Week Avg DAU",       315, "+12")
+        st.metric("Month Avg DAU",      278, "+45")
+    with c2:
+        st.metric("Queries Today",   12450, "+2300")
+        st.metric("Avg Latency",     "245 ms")
+        st.metric("Error Rate",      "0.02%", "-0.01%")
 
+    st.markdown('<div class="section-hdr" style="margin-top:1rem">Most Used Features</div>', unsafe_allow_html=True)
+    features = {"Service Discovery": 45, "Eligibility Check": 32, "Doc Verification": 28, "Grievance Filing": 18, "KB Search": 15}
+    for feat, pct in features.items():
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:10px;margin:.3rem 0">'
+            f'<span style="width:150px;font-size:.84rem;font-weight:600">{feat}</span>'
+            f'<div style="flex:1;background:#e2e8f0;border-radius:99px;height:7px">'
+            f'<div style="width:{pct}%;background:var(--accent);height:7px;border-radius:99px"></div>'
+            f'</div><span style="font-size:.8rem;color:var(--muted)">{pct}%</span></div>',
+            unsafe_allow_html=True,
+        )
+
+# ── Maintenance ───────────────────────────────────────────────────────────────
 with tab5:
-    st.markdown("## System Maintenance")
-    
-    st.markdown("### Active Alerts")
-    
+    st.markdown('<div class="section-hdr">Active Alerts</div>', unsafe_allow_html=True)
     alerts = [
-        {
-            "level": "⚠️ Warning",
-            "message": "Database connection pool at 85% capacity",
-            "action": "Monitor and scale if needed"
-        },
-        {
-            "level": "ℹ️ Info",
-            "message": "Scheduled maintenance on Sunday 2 AM UTC",
-            "action": "1 hour expected downtime"
-        }
+        {"level": "⚠️ Warning", "msg": "Database connection pool at 85% capacity", "action": "Monitor and scale if needed", "bc": "amber"},
+        {"level": "ℹ️ Info",    "msg": "Scheduled maintenance Sunday 2 AM UTC",      "action": "1 hour expected downtime",    "bc": "blue"},
     ]
-    
-    for alert in alerts:
-        with st.expander(f"{alert['level']}"):
-            st.write(alert['message'])
-            st.info(f"Action: {alert['action']}")
-    
-    st.divider()
-    
-    st.markdown("### Scheduled Tasks")
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        tasks = [
-            ("Database Backup", "Daily, 2 AM UTC", "✅ Healthy"),
-            ("Vector DB Sync", "Every 6 hours", "✅ Healthy"),
-            ("Cache Clear", "Daily, 12 AM UTC", "✅ Healthy"),
-            ("Log Rotation", "Weekly, Monday 1 AM", "✅ Healthy")
-        ]
-        
-        for task, schedule, status in tasks:
-            st.write(f"{status} **{task}** - {schedule}")
-    
-    with col2:
-        if st.button("🔧 Run Maintenance", use_container_width=True):
-            st.info("Running maintenance tasks...")
-            st.success("All maintenance tasks completed")
+    for a in alerts:
+        with st.expander(f"{a['level']} — {a['msg'][:50]}…"):
+            st.write(a["msg"])
+            st.markdown(
+                f'<span class="csc-badge csc-badge-{a["bc"]}">Action: {a["action"]}</span>',
+                unsafe_allow_html=True,
+            )
+
+    st.markdown('<div class="section-hdr" style="margin-top:1rem">Scheduled Tasks</div>', unsafe_allow_html=True)
+    tasks = [
+        ("Database Backup",  "Daily, 2 AM UTC",       "green"),
+        ("Vector DB Sync",   "Every 6 hours",          "green"),
+        ("Cache Clear",      "Daily, 12 AM UTC",       "green"),
+        ("Log Rotation",     "Weekly, Monday 1 AM",    "green"),
+    ]
+    for task, schedule, bc in tasks:
+        st.markdown(
+            f'<div style="display:flex;align-items:center;justify-content:space-between;'
+            f'padding:.5rem 0;border-bottom:1px solid var(--border)">'
+            f'<span><b>{task}</b> — <small style="color:var(--muted)">{schedule}</small></span>'
+            f'<span class="csc-badge csc-badge-{bc}">✓ Healthy</span>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    if st.button("🔧 Run Maintenance Now", type="primary", key="adm_maint", use_container_width=True):
+        with st.spinner("Running maintenance tasks…"):
+            import time; time.sleep(1)
+        st.success("✅ All maintenance tasks completed.")
+
+    # ── HITL Queue ─────────────────────────────────────────────────────────────
+    st.markdown('<div class="section-hdr" style="margin-top:1rem">HITL Review Queue</div>', unsafe_allow_html=True)
+    if list_pending_reviews:
+        items = list_pending_reviews(limit=5)
+        if not items:
+            st.caption("No pending reviews.")
+        for item in items:
+            rid = item["id"]
+            st.markdown(
+                f'<div class="csc-card">'
+                f'<b>HITL-{rid}</b> · {item["reason"]} · conf {item["confidence"]:.2f}<br>'
+                f'<small style="color:var(--muted)">{item.get("created_at","")}</small><br>'
+                f'<i>{item.get("query","")}</i>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+            if st.button(f"✅ Reviewed (HITL-{rid})", key=f"adm_hitl_{rid}"):
+                if resolve_review and resolve_review(rid, operator_note="Admin panel review"):
+                    st.success(f"HITL-{rid} resolved.")
+                    st.rerun()
+    else:
+        st.info("HITL backend not connected. Configure backend to enable review queue.")

@@ -1,219 +1,133 @@
 """
-Officer Dashboard Page
-Compliance officer dashboard for case assignment and SLA management
+Officer Dashboard Page (modernized)
+Compliance officer case assignment and SLA management.
 """
 
 import streamlit as st
-import sys
-import os
+import sys, os
 from datetime import datetime, timedelta
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(current_dir, ".."))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+st.set_page_config(page_title="Officer Dashboard", page_icon="👮", layout="wide")
 
-st.set_page_config(
-    page_title="Officer Dashboard",
-    page_icon="👮",
-    layout="wide",
+from components.styles import apply_global_css
+apply_global_css()
+
+st.markdown(
+    """
+<div class="csc-hero">
+  <h1>👮 Officer Dashboard</h1>
+  <p>Compliance officer case assignment, SLA tracking, and escalation management.</p>
+</div>
+""",
+    unsafe_allow_html=True,
 )
 
-st.markdown("# 👮 Officer Dashboard")
-st.markdown("Compliance officer case assignment and SLA management")
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("Assigned Cases",  42, "+5")
+c2.metric("SLA Alerts",       8, "+2")
+c3.metric("Escalations",      3, "-1")
+c4.metric("Compliance Rate", "94.2%", "+2.1%")
 
-st.divider()
-
-# Key Metrics
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.metric("Assigned Cases", 42, "+5")
-
-with col2:
-    st.metric("SLA Alerts", 8, "+2")
-
-with col3:
-    st.metric("Escalations", 3, "-1")
-
-with col4:
-    st.metric("Compliance Rate", "94.2%", "+2.1%")
-
-st.divider()
-
-# Tabs for different sections
 tab1, tab2, tab3, tab4 = st.tabs(["📋 Assigned Cases", "⚠️ SLA Alerts", "📈 Escalations", "📊 Analytics"])
 
+_PCOLOR = {"Critical": "red", "High": "red", "Medium": "amber", "Low": "green"}
+
+_CASES = [
+    {"id": "CSC-2024-0521", "vle": "Rajesh CSC Center", "service": "PM-KISAN",  "priority": "High",     "status": "In Review",          "sla_h": 6},
+    {"id": "CSC-2024-0520", "vle": "Priya CSC Center",  "service": "e-Shram",   "priority": "Medium",   "status": "Pending Verification","sla_h": 18},
+    {"id": "CSC-2024-0519", "vle": "Amit CSC Center",   "service": "Passport",  "priority": "Low",      "status": "Completed",           "sla_h": 0},
+]
+
 with tab1:
-    st.markdown("## Assigned Cases")
-    
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        search_filter = st.text_input("Search cases:", placeholder="Case ID or VLE name")
-    with col2:
-        priority_filter = st.selectbox(
-            "Filter by Priority",
-            ["All", "Critical", "High", "Medium", "Low"]
-        )
-    
-    st.divider()
-    
-    # Mock assigned cases
-    assigned_cases = [
-        {
-            "case_id": "CSC-2024-0521",
-            "vle_name": "Rajesh CSC Center",
-            "service": "PM-KISAN",
-            "priority": "High",
-            "status": "In Review",
-            "assigned_date": datetime.now() - timedelta(days=2),
-            "sla_hours_left": 6
-        },
-        {
-            "case_id": "CSC-2024-0520",
-            "vle_name": "Priya CSC Center",
-            "service": "e-Shram",
-            "priority": "Medium",
-            "status": "Pending Verification",
-            "assigned_date": datetime.now() - timedelta(days=1),
-            "sla_hours_left": 18
-        },
-        {
-            "case_id": "CSC-2024-0519",
-            "vle_name": "Amit CSC Center",
-            "service": "Passport",
-            "priority": "Low",
-            "status": "Completed",
-            "assigned_date": datetime.now() - timedelta(days=3),
-            "sla_hours_left": 0
-        }
-    ]
-    
-    for case in assigned_cases:
-        # Color code by priority
-        priority_color = {
-            "Critical": "🔴",
-            "High": "🟠",
-            "Medium": "🟡",
-            "Low": "🟢"
-        }
-        
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.write(f"🎟️ **{case['case_id']}**")
-            st.write(f"CSC: {case['vle_name']}")
-        
-        with col2:
-            st.write(f"📋 {case['service']}")
-            st.write(f"{priority_color.get(case['priority'], '⚪')} {case['priority']}")
-        
-        with col3:
-            st.write(f"Status: {case['status']}")
-            sla_color = "🟢" if case['sla_hours_left'] > 12 else "🟡" if case['sla_hours_left'] > 6 else "🔴"
-            st.write(f"{sla_color} SLA: {case['sla_hours_left']}h left")
-        
-        with col4:
-            if st.button("✅ Approve", key=f"approve_{case['case_id']}", use_container_width=True):
-                st.success(f"Approved {case['case_id']}")
-            if st.button("📝 Review", key=f"review_{case['case_id']}", use_container_width=True):
-                st.info(f"Opening review for {case['case_id']}")
+    st.markdown('<div class="section-hdr">Assigned Cases</div>', unsafe_allow_html=True)
+    c1, c2 = st.columns([2, 1])
+    c1.text_input("Search", placeholder="Case ID or VLE name", key="off_search")
+    c2.selectbox("Priority", ["All", "Critical", "High", "Medium", "Low"], key="off_pf")
+
+    for case in _CASES:
+        pc = _PCOLOR.get(case["priority"], "blue")
+        sla_bc = "red" if case["sla_h"] <= 6 else "amber" if case["sla_h"] <= 12 else "green"
+        with st.container():
+            c1, c2, c3, c4 = st.columns([2, 2, 2, 1])
+            c1.markdown(
+                f'<b>{case["id"]}</b><br>'
+                f'<span style="font-size:.82rem;color:var(--muted)">{case["vle"]}</span>',
+                unsafe_allow_html=True,
+            )
+            c2.markdown(
+                f'📋 {case["service"]}<br>'
+                f'<span class="csc-badge csc-badge-{pc}">{case["priority"]}</span>',
+                unsafe_allow_html=True,
+            )
+            c3.markdown(
+                f'{case["status"]}<br>'
+                f'<span class="csc-badge csc-badge-{sla_bc}">'
+                f'{"✓ Done" if case["sla_h"]==0 else f"{case[\"sla_h\"]}h left"}'
+                f'</span>',
+                unsafe_allow_html=True,
+            )
+            if c4.button("✅ Approve", key=f"off_app_{case['id']}", use_container_width=True):
+                st.success(f"Approved {case['id']}")
+            if c4.button("📝 Review", key=f"off_rev_{case['id']}", use_container_width=True):
+                st.info(f"Reviewing {case['id']}")
+        st.markdown("<hr style='margin:.2rem 0;border-color:var(--border)'>", unsafe_allow_html=True)
+
+_ALERTS = [
+    {"id": "CSC-2024-0521", "service": "PM-KISAN",  "alert": "Critical – 6 h left",  "vle": "Rajesh CSC"},
+    {"id": "CSC-2024-0518", "service": "e-Shram",   "alert": "Warning – 4 h left",   "vle": "Amit CSC"},
+    {"id": "CSC-2024-0517", "service": "Passport",  "alert": "Critical – 2 h left",  "vle": "Priya CSC"},
+]
 
 with tab2:
-    st.markdown("## SLA Alerts")
-    
-    sla_alerts = [
-        {
-            "case_id": "CSC-2024-0521",
-            "service": "PM-KISAN",
-            "alert_type": "Critical - 6 hours left",
-            "vle": "Rajesh CSC Center"
-        },
-        {
-            "case_id": "CSC-2024-0518",
-            "service": "e-Shram",
-            "alert_type": "Warning - 4 hours left",
-            "vle": "Amit CSC Center"
-        },
-        {
-            "case_id": "CSC-2024-0517",
-            "service": "Passport",
-            "alert_type": "Critical - 2 hours left",
-            "vle": "Priya CSC Center"
-        }
-    ]
-    
-    for alert in sla_alerts:
-        alert_emoji = "🔴" if "Critical" in alert['alert_type'] else "🟡"
-        
-        with st.expander(f"{alert_emoji} {alert['case_id']} - {alert['alert_type']}"):
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.write(f"**Service:** {alert['service']}")
-                st.write(f"**VLE:** {alert['vle']}")
-            
-            with col2:
-                if st.button("⚡ Escalate", key=f"escalate_{alert['case_id']}"):
-                    st.warning(f"Escalated {alert['case_id']}")
-                if st.button("⏱️ Extend SLA", key=f"extend_{alert['case_id']}"):
-                    st.success(f"SLA extended for {alert['case_id']}")
+    st.markdown('<div class="section-hdr">SLA Alerts</div>', unsafe_allow_html=True)
+    for a in _ALERTS:
+        is_crit = "Critical" in a["alert"]
+        with st.expander(f"{'🔴' if is_crit else '🟡'} {a['id']} — {a['alert']}"):
+            c1, c2 = st.columns(2)
+            c1.markdown(f'<b>Service:</b> {a["service"]}<br><b>VLE:</b> {a["vle"]}', unsafe_allow_html=True)
+            if c2.button("⚡ Escalate",     key=f"off_esc_{a['id']}", use_container_width=True):
+                st.warning(f"Escalated {a['id']}")
+            if c2.button("⏱️ Extend SLA", key=f"off_ext_{a['id']}", use_container_width=True):
+                st.success(f"SLA extended for {a['id']}")
+
+_ESCS = [
+    {"id": "CSC-2024-0516", "reason": "Compliance violation",       "severity": "High",     "when": "1d ago"},
+    {"id": "CSC-2024-0515", "reason": "Document authenticity issue","severity": "Critical",  "when": "6h ago"},
+    {"id": "CSC-2024-0514", "reason": "Eligibility dispute",        "severity": "Medium",   "when": "12h ago"},
+]
 
 with tab3:
-    st.markdown("## Escalations")
-    
-    escalations = [
-        {
-            "case_id": "CSC-2024-0516",
-            "reason": "Compliance violation",
-            "severity": "High",
-            "escalated_date": datetime.now() - timedelta(days=1)
-        },
-        {
-            "case_id": "CSC-2024-0515",
-            "reason": "Document authenticity issue",
-            "severity": "Critical",
-            "escalated_date": datetime.now() - timedelta(hours=6)
-        },
-        {
-            "case_id": "CSC-2024-0514",
-            "reason": "Eligibility dispute",
-            "severity": "Medium",
-            "escalated_date": datetime.now() - timedelta(hours=12)
-        }
-    ]
-    
-    for esc in escalations:
-        severity_emoji = {"Critical": "🔴", "High": "🟠", "Medium": "🟡"}.get(esc['severity'], "🟢")
-        
-        with st.expander(f"{severity_emoji} {esc['case_id']} - {esc['reason']}"):
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.write(f"**Severity:** {esc['severity']}")
-                st.write(f"**Escalated:** {esc['escalated_date'].strftime('%Y-%m-%d %H:%M')}")
-            
-            with col2:
-                if st.button("✅ Resolve", key=f"resolve_esc_{esc['case_id']}"):
-                    st.success(f"Marked {esc['case_id']} as resolved")
+    st.markdown('<div class="section-hdr">Escalations</div>', unsafe_allow_html=True)
+    for e in _ESCS:
+        sc = _PCOLOR.get(e["severity"], "blue")
+        with st.expander(f"{'🔴' if e['severity']=='Critical' else '🟠'} {e['id']} — {e['reason']}"):
+            c1, c2 = st.columns(2)
+            c1.markdown(
+                f'<span class="csc-badge csc-badge-{sc}">{e["severity"]}</span><br>'
+                f'<small style="color:var(--muted)">Escalated: {e["when"]}</small>',
+                unsafe_allow_html=True,
+            )
+            if c2.button("✅ Resolve", key=f"off_res_esc_{e['id']}", use_container_width=True):
+                st.success(f"Resolved {e['id']}")
 
 with tab4:
-    st.markdown("## Officer Performance Analytics")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("### This Month")
-        st.metric("Cases Reviewed", 156)
-        st.metric("Approval Rate", "92.3%")
-        st.metric("Avg Review Time", "1.2 days")
-    
-    with col2:
-        st.markdown("### Case Distribution")
-        dist = {
-            "PM-KISAN": 45,
-            "e-Shram": 35,
-            "Passport": 40,
-            "Ayushman": 25,
-            "DigiPay": 11
-        }
-        for service, count in dist.items():
-            st.write(f"- {service}: {count} cases")
+    st.markdown('<div class="section-hdr">Performance Analytics</div>', unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Cases Reviewed", 156)
+    c2.metric("Approval Rate",  "92.3%")
+    c3.metric("Avg Review Time","1.2 days")
+
+    st.markdown('<div class="section-hdr" style="margin-top:1rem">Case Distribution</div>', unsafe_allow_html=True)
+    dist = {"PM-KISAN": 45, "e-Shram": 35, "Passport": 40, "Ayushman": 25, "DigiPay": 11}
+    total = sum(dist.values())
+    for svc, cnt in dist.items():
+        pct = cnt / total * 100
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:10px;margin:.3rem 0">'
+            f'<span style="width:100px;font-size:.85rem;font-weight:600">{svc}</span>'
+            f'<div style="flex:1;background:#e2e8f0;border-radius:99px;height:7px">'
+            f'<div style="width:{pct:.0f}%;background:var(--primary);height:7px;border-radius:99px"></div>'
+            f'</div><span style="font-size:.83rem;color:var(--muted)">{cnt}</span></div>',
+            unsafe_allow_html=True,
+        )

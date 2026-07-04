@@ -279,3 +279,18 @@ def patch_file(filepath):
 
 patch_file(r"c:\Users\Dell\Desktop\csc-mitra-ai1\streamlit_app.py")
 patch_file(r"c:\Users\Dell\Desktop\csc-mitra-ai1\pages\1_CSC_Assistant.py")
+
+import mcp_provides_tool_pylanceRunCodeSnippet
+
+# Define your code snippet as a string
+code_snippet = """
+print("Hello, World!")
+"""
+
+# Run the code snippet in the workspace environment
+mcp_provides_tool_pylanceRunCodeSnippet.mcp_provides_tool_pylanceRunCodeSnippet(
+    workspaceRoot="C:\\Users\\Dell\\Downloads\\chaitcsc-main",
+    codeSnippet=code_snippet,
+    timeout=30000,  # Optional: set a timeout in milliseconds (default is 30 seconds)
+    workingDirectory="C:\\Users\\Dell\\Downloads\\chaitcsc-main"
+)
