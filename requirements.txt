@@ -1,0 +1,46 @@
+streamlit
+streamlit-mic-recorder
+openai
+psycopg2-binary
+requests
+beautifulsoup4
+pypdf
+python-docx
+openpyxl
+python-pptx
+tavily-python
+langchain
+langchain-core
+langchain-community
+langchain-text-splitters
+langchain-openai
+langchain-cohere
+langchain-huggingface
+langgraph
+fastapi
+uvicorn
+chromadb
+cohere
+sentence-transformers
+tiktoken
+pydantic
+sqlalchemy
+python-dotenv
+pyyaml
+
+# backend/llm/ (config-driven LLM Manager) test suite
+pytest
+
+# optional: only needed if a model in backend/llm/config/models.yaml is
+# configured with `provider: litellm` instead of `openai_compatible`
+# litellm
+
+# Real-time voice dependencies
+websockets
+pydub
+SpeechRecognition
+gTTS
+edge-tts
+transformers
+torch
+faster-whisper
