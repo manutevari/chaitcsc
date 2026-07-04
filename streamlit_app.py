@@ -1433,6 +1433,19 @@ def _render_realtime_voice():
     st.iframe(data_url, height=360)
 
 
+def _set_voice_mode(value):
+    """Callback for the mic/chat icon buttons.
+
+    `voice_mode` is the session_state key bound to the sidebar checkbox
+    widget (see _render_sidebar). Streamlit forbids assigning to a
+    widget-bound key from the main script body after that widget has
+    already been instantiated in the same run -- doing so raises
+    StreamlitAPIException. Callbacks run *before* the script reruns and
+    any widgets are instantiated, so this is the safe way to change it.
+    """
+    st.session_state.voice_mode = value
+
+
 _init_state()
 _apply_css()
 cloud_consent, response_language, voice_language, sidebar_query = _render_sidebar()
@@ -1441,12 +1454,8 @@ _render_header()
 # Quick mode selector icons: 🎤 Mic for voice, 💬 Chat for text
 col_icon, _ = st.columns([1, 9])
 with col_icon:
-    if st.button("🎤 Mic", key="icon_mic"):
-        st.session_state.voice_mode = True
-        st.rerun()
-    if st.button("💬 Chat", key="icon_chat"):
-        st.session_state.voice_mode = False
-        st.rerun()
+    st.button("🎤 Mic", key="icon_mic", on_click=_set_voice_mode, args=(True,))
+    st.button("💬 Chat", key="icon_chat", on_click=_set_voice_mode, args=(False,))
 quick_prompt_query = sidebar_query or _render_quick_prompts()
 _render_chat_history(response_language, voice_mode)
 _render_realtime_voice()
