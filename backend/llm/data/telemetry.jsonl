@@ -67,3 +67,5 @@
 {"ts": 1783155773.7611363, "model_id": "llama4_maverick_openrouter", "task": "rag_answer", "success": false, "latency_ms": 0.0, "reason": "HTTPError"}
 {"ts": 1783156557.6495116, "model_id": "openrouter_free", "task": "rag_answer", "success": false, "latency_ms": 0.0, "reason": "HTTPError"}
 {"ts": 1783156562.6653903, "model_id": "llama4_maverick_openrouter", "task": "rag_answer", "success": false, "latency_ms": 0.0, "reason": "HTTPError"}
+{"ts": 1783189201.465968, "model_id": "openrouter_free", "task": "rag_answer", "success": false, "latency_ms": 0.0, "reason": "HTTPError"}
+{"ts": 1783189202.1962938, "model_id": "llama4_maverick_openrouter", "task": "rag_answer", "success": false, "latency_ms": 0.0, "reason": "HTTPError"}
